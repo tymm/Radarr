@@ -61,6 +61,9 @@ namespace NzbDrone.Core.Test.ParserTests
         [TestCase("World.Movie.Z.2.EXTENDED.2013.German.DL.1080p.BluRay.AVC-XANOR", "World Movie Z 2")]
         [TestCase("G.I.Movie.Movie.2013.THEATRiCAL.COMPLETE.BLURAY-GLiMMER", "G.I. Movie Movie")]
         [TestCase("www.Torrenting.org - Movie.2008.720p.X264-DIMENSION", "Movie")]
+        [TestCase("Movie.Title.1984.2020", "Movie Title 1984")]
+        [TestCase("1929 (2020)", "1929")]
+        [TestCase("1929 2020", "1929")]
         public void should_parse_movie_title(string postTitle, string title)
         {
             Parser.Parser.ParseMovieTitle(postTitle).MovieTitle.Should().Be(title);
@@ -78,6 +81,9 @@ namespace NzbDrone.Core.Test.ParserTests
         [TestCase("Life.Movie.2014.German.DL.PAL.DVDR-ETM", "Life Movie", "", 2014)]
         [TestCase("Joe.Movie.2.EXTENDED.EDITION.2015.German.DL.PAL.DVDR-ETM", "Joe Movie 2", "EXTENDED EDITION", 2015)]
         [TestCase("Movie.EXTENDED.2011.HDRip.AC3.German.XviD-POE", "Movie", "EXTENDED", 2011)]
+        [TestCase("Movie.Title.1984.2020", "Movie Title 1984", "", 2020)]
+        [TestCase("1929 (2020)", "1929", "", 2020)]
+        [TestCase("1929 2020", "1929", "", 2020)]
 
         //Special cases (see description)
         [TestCase("Movie.Klasse.von.1999.1990.German.720p.HDTV.x264-NORETAiL", "Movie Klasse von 1999", "", 1990, Description = "year in the title")]
