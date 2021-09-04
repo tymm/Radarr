@@ -418,11 +418,9 @@ stages:
           artifactName: '$(testName)Tests'
           targetPath: $(testsFolder)
       - bash: |
-          wget https://mediaarea.net/repo/deb/repo-mediaarea_1.0-11_all.deb
-          sudo dpkg -i repo-mediaarea_1.0-11_all.deb
           sudo apt-get update
-          sudo apt-get install -y --allow-unauthenticated libmediainfo-dev libmediainfo0v5 mediainfo
-        displayName: Install mediainfo
+          sudo apt-get install -y ffmpeg
+        displayName: Install ffmpeg
         condition: and(succeeded(), eq(variables['testName'], 'LinuxCore'))
       - powershell: Set-Service SCardSvr -StartupType Manual
         displayName: Enable Windows Test Service
@@ -477,6 +475,9 @@ stages:
       - bash: find ${TESTSFOLDER} -name "Radarr.Test.Dummy" -exec chmod a+x {} \;
         displayName: Make Test Dummy Executable
         condition: and(succeeded(), ne(variables['osName'], 'Windows'))
+      - bash: |
+           sudo apk add  --no-cache ffmpeg
+        displayName: Install ffmpeg
       - bash: |
           chmod a+x ${TESTSFOLDER}/test.sh
           ls -lR ${TESTSFOLDER}
