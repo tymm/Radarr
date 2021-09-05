@@ -61,12 +61,10 @@ namespace NzbDrone.Core.Test.MediaFiles.MediaInfo
             info.VideoBitrate.Should().Be(193328);
             info.VideoFps.Should().Be(24);
             info.Width.Should().Be(480);
+            info.VideoColourPrimaries.Should().Be("smpte170m");
+            info.VideoTransferCharacteristics.Should().Be("bt709");
 
-            // info.VideoColourPrimaries.Should().Be("BT.601 NTSC");
-            // info.VideoTransferCharacteristics.Should().Be("BT.709");
             // info.AudioAdditionalFeatures.Should().BeOneOf("", "LC");
-            // info.VideoHdrFormat.Should().BeEmpty();
-            // info.VideoHdrFormatCompatibility.Should().BeEmpty();
         }
 
         [Test]
@@ -104,12 +102,10 @@ namespace NzbDrone.Core.Test.MediaFiles.MediaInfo
             info.VideoBitrate.Should().Be(193328);
             info.VideoFps.Should().Be(24);
             info.Width.Should().Be(480);
+            info.VideoColourPrimaries.Should().Be("smpte170m");
+            info.VideoTransferCharacteristics.Should().Be("bt709");
 
-            // info.VideoColourPrimaries.Should().Be("BT.601 NTSC");
-            // info.VideoTransferCharacteristics.Should().Be("BT.709");
             // info.AudioAdditionalFeatures.Should().BeOneOf("", "LC");
-            // info.VideoHdrFormat.Should().BeEmpty();
-            // info.VideoHdrFormatCompatibility.Should().BeEmpty();
         }
     }
 }

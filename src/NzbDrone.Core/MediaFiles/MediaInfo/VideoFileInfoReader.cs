@@ -18,8 +18,8 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
         private readonly IDiskProvider _diskProvider;
         private readonly Logger _logger;
 
-        public const int MINIMUM_MEDIA_INFO_SCHEMA_REVISION = 4;
-        public const int CURRENT_MEDIA_INFO_SCHEMA_REVISION = 7;
+        public const int MINIMUM_MEDIA_INFO_SCHEMA_REVISION = 8;
+        public const int CURRENT_MEDIA_INFO_SCHEMA_REVISION = 8;
 
         public VideoFileInfoReader(IDiskProvider diskProvider, Logger logger)
         {
@@ -34,82 +34,49 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
                 throw new FileNotFoundException("Media file does not exist: " + filename);
             }
 
-            IMediaAnalysis mediaInfo = null;
-
             // TODO: Cache media info by path, mtime and length so we don't need to read files multiple times
             try
             {
                 _logger.Debug("Getting media info from {0}", filename);
-                mediaInfo = FFProbe.Analyse(filename);
+                var mediaInfo = FFProbe.Analyse(filename);
 
-                if (mediaInfo != null)
+                var audioRuntime = mediaInfo.PrimaryAudioStream.Duration;
+                var videoRuntime = mediaInfo.PrimaryVideoStream.Duration;
+                var generalRuntime = mediaInfo.Format.Duration;
+
+                var mediaInfoModel = new MediaInfoModel
                 {
-                    int width = mediaInfo.PrimaryVideoStream.Width;
-                    int height = mediaInfo.PrimaryVideoStream.Height;
-                    int videoBitRate = mediaInfo.PrimaryVideoStream.BitRate;
-                    int audioBitRate = mediaInfo.PrimaryAudioStream.BitRate;
-                    var audioRuntime = mediaInfo.PrimaryAudioStream.Duration;
-                    var videoRuntime = mediaInfo.PrimaryVideoStream.Duration;
-                    var generalRuntime = mediaInfo.Format.Duration;
-                    int streamCount = mediaInfo.AudioStreams.Count;
-                    int audioChannels = mediaInfo.PrimaryAudioStream.Channels;
-                    int videoBitDepth = mediaInfo.PrimaryVideoStream.BitsPerRawSample;
-                    decimal videoFrameRate = (decimal)mediaInfo.PrimaryVideoStream.FrameRate;
-                    int videoMultiViewCount = mediaInfo.VideoStreams.Count;
+                    ContainerFormat = mediaInfo.Format.FormatLongName,
+                    VideoFormat = mediaInfo.PrimaryVideoStream.CodecName,
+                    VideoCodecID = mediaInfo.PrimaryVideoStream.CodecTagString,
+                    VideoProfile = mediaInfo.PrimaryVideoStream.Profile,
+                    VideoCodecLibrary = "",
+                    VideoBitrate = mediaInfo.PrimaryVideoStream.BitRate,
+                    VideoBitDepth = mediaInfo.PrimaryVideoStream.BitsPerRawSample,
+                    VideoMultiViewCount = mediaInfo.VideoStreams.Count,
+                    VideoColourPrimaries = mediaInfo.PrimaryVideoStream.ColorPrimaries,
+                    VideoTransferCharacteristics = mediaInfo.PrimaryVideoStream.ColorTransfer,
+                    Height = mediaInfo.PrimaryVideoStream.Height,
+                    Width = mediaInfo.PrimaryVideoStream.Width,
+                    AudioFormat = mediaInfo.PrimaryAudioStream.CodecName,
+                    AudioCodecID = mediaInfo.PrimaryAudioStream.CodecTagString,
+                    AudioProfile = mediaInfo.PrimaryAudioStream.Profile,
+                    AudioCodecLibrary = "",
+                    AudioAdditionalFeatures = "",
+                    AudioBitrate = mediaInfo.PrimaryAudioStream.BitRate,
+                    RunTime = GetBestRuntime(audioRuntime, videoRuntime, generalRuntime),
+                    AudioStreamCount = mediaInfo.AudioStreams.Count,
+                    AudioChannelsContainer = 0,
+                    AudioChannelsStream = mediaInfo.PrimaryAudioStream.Channels,
+                    AudioChannelPositions = mediaInfo.PrimaryAudioStream.ChannelLayout,
+                    VideoFps = (decimal)mediaInfo.PrimaryVideoStream.FrameRate,
+                    AudioLanguages = mediaInfo.AudioStreams.SelectList(x => x.Language).ConcatToString(),
+                    Subtitles = mediaInfo.SubtitleStreams.SelectList(x => x.Language).ConcatToString(),
+                    ScanType = "Progressive",
+                    SchemaRevision = CURRENT_MEDIA_INFO_SCHEMA_REVISION
+                };
 
-                    string subtitles = mediaInfo.SubtitleStreams.SelectList(x => x.Language).ConcatToString();
-                    string scanType = "Progressive";
-
-                    var audioChannelPositions = mediaInfo.PrimaryAudioStream.ChannelLayout;
-                    string audioLanguages = mediaInfo.AudioStreams.SelectList(x => x.Language).ConcatToString();
-
-                    string videoProfile = mediaInfo.PrimaryVideoStream.Profile;
-                    string audioProfile = mediaInfo.PrimaryAudioStream.Profile;
-
-                    var mediaInfoModel = new MediaInfoModel
-                    {
-                        ContainerFormat = mediaInfo.Format.FormatLongName,
-                        VideoFormat = mediaInfo.PrimaryVideoStream.CodecName,
-                        VideoCodecID = mediaInfo.PrimaryVideoStream.CodecTagString,
-                        VideoProfile = videoProfile,
-                        VideoCodecLibrary = "",
-                        VideoBitrate = videoBitRate,
-                        VideoBitDepth = videoBitDepth,
-                        VideoMultiViewCount = videoMultiViewCount,
-                        VideoColourPrimaries = mediaInfo.PrimaryVideoStream.ColorPrimaries,
-                        VideoTransferCharacteristics = mediaInfo.PrimaryVideoStream.ColorTransfer,
-                        VideoHdrFormat = "todo",
-                        VideoHdrFormatCompatibility = "todo",
-                        Height = height,
-                        Width = width,
-                        AudioFormat = mediaInfo.PrimaryAudioStream.CodecName,
-                        AudioCodecID = mediaInfo.PrimaryAudioStream.CodecTagString,
-                        AudioProfile = audioProfile,
-                        AudioCodecLibrary = "",
-                        AudioAdditionalFeatures = "",
-                        AudioBitrate = audioBitRate,
-                        RunTime = GetBestRuntime(audioRuntime, videoRuntime, generalRuntime),
-                        AudioStreamCount = streamCount,
-                        AudioChannelsContainer = 0,
-                        AudioChannelsStream = audioChannels,
-                        AudioChannelPositions = audioChannelPositions,
-                        VideoFps = videoFrameRate,
-                        AudioLanguages = audioLanguages,
-                        Subtitles = subtitles,
-                        ScanType = scanType,
-                        SchemaRevision = CURRENT_MEDIA_INFO_SCHEMA_REVISION
-                    };
-
-                    return mediaInfoModel;
-                }
-                else
-                {
-                    _logger.Warn("Unable to open media info from file: " + filename);
-                }
-            }
-            catch (DllNotFoundException ex)
-            {
-                _logger.Error(ex, "mediainfo is required but was not found");
+                return mediaInfoModel;
             }
             catch (Exception ex)
             {

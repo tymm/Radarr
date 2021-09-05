@@ -5,24 +5,11 @@ using NzbDrone.Test.Common;
 
 namespace NzbDrone.Core.Test.MediaFiles.MediaInfo.MediaInfoFormatterTests
 {
+    [Ignore("WIP")]
     [TestFixture]
     public class FormatAudioCodecFixture : TestBase
     {
         private static string sceneName = "My.Series.S01E01-Sonarr";
-
-        [TestCase("AC-3", "AC3")]
-        [TestCase("E-AC-3", "EAC3")]
-        [TestCase("MPEG Audio", "MPEG Audio")]
-        [TestCase("DTS", "DTS")]
-        public void should_format_audio_format_legacy(string audioFormat, string expectedFormat)
-        {
-            var mediaInfoModel = new MediaInfoModel
-            {
-                AudioFormat = audioFormat
-            };
-
-            MediaInfoFormatter.FormatAudioCodec(mediaInfoModel, sceneName).Should().Be(expectedFormat);
-        }
 
         [TestCase("MPEG Audio, A_MPEG/L2, , , ", "droned.s01e03.swedish.720p.hdtv.x264-prince", "MP2")]
         [TestCase("Vorbis, A_VORBIS, , Xiph.Org libVorbis I 20101101 (Schaufenugget), ", "DB Super HDTV", "Vorbis")]

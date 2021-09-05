@@ -12,20 +12,17 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
 {
     public static class MediaInfoFormatter
     {
-        private const string ValidHdrColourPrimaries = "BT.2020";
+        private const string ValidHdrColourPrimaries = "bt2020";
         private const string VideoDynamicRangeHdr = "HDR";
-        private static readonly string[] ValidHdrTransferFunctions = { "PQ", "HLG" };
+        private static readonly string[] ValidHdrTransferFunctions = { "PQ", "HLG", "smpte2084" };
+
+        private static readonly Regex PositionRegex = new Regex(@"(?<position>^\d\.\d)", RegexOptions.Compiled);
 
         private static readonly Logger Logger = NzbDroneLogger.GetLogger(typeof(MediaInfoFormatter));
 
         public static decimal FormatAudioChannels(MediaInfoModel mediaInfo)
         {
             var audioChannels = FormatAudioChannelsFromAudioChannelPositions(mediaInfo);
-
-            if (audioChannels == null || audioChannels == 0.0m)
-            {
-                audioChannels = FormatAudioChannelsFromAudioChannelPositionsText(mediaInfo);
-            }
 
             if (audioChannels == null || audioChannels == 0.0m)
             {
@@ -37,11 +34,6 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
 
         public static string FormatAudioCodec(MediaInfoModel mediaInfo, string sceneName)
         {
-            if (mediaInfo.AudioCodecID == null)
-            {
-                return FormatAudioCodecLegacy(mediaInfo, sceneName);
-            }
-
             var audioFormat = mediaInfo.AudioFormat.Trim().Split(new[] { " / " }, StringSplitOptions.RemoveEmptyEntries);
             var audioCodecID = mediaInfo.AudioCodecID ?? string.Empty;
             var audioProfile = mediaInfo.AudioProfile ?? string.Empty;
@@ -53,32 +45,22 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
                 return string.Empty;
             }
 
-            if (audioFormat.ContainsIgnoreCase("Atmos"))
+            if (audioCodecID.ContainsIgnoreCase("thd+"))
             {
                 return "TrueHD Atmos";
             }
 
-            if (audioFormat.ContainsIgnoreCase("MLP FBA"))
-            {
-                if (splitAdditionalFeatures.ContainsIgnoreCase("16-ch"))
-                {
-                    return "TrueHD Atmos";
-                }
-
-                return "TrueHD";
-            }
-
-            if (audioFormat.ContainsIgnoreCase("TrueHD"))
+            if (audioFormat.ContainsIgnoreCase("truehd"))
             {
                 return "TrueHD";
             }
 
-            if (audioFormat.ContainsIgnoreCase("FLAC"))
+            if (audioFormat.ContainsIgnoreCase("flac"))
             {
                 return "FLAC";
             }
 
-            if (audioFormat.ContainsIgnoreCase("DTS"))
+            if (audioFormat.ContainsIgnoreCase("dts"))
             {
                 if (splitAdditionalFeatures.ContainsIgnoreCase("XLL"))
                 {
@@ -103,22 +85,22 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
                 return "DTS";
             }
 
-            if (audioFormat.ContainsIgnoreCase("E-AC-3"))
+            if (audioCodecID.ContainsIgnoreCase("ec+3"))
             {
-                if (splitAdditionalFeatures.ContainsIgnoreCase("JOC"))
-                {
-                    return "EAC3 Atmos";
-                }
+                return "EAC3 Atmos";
+            }
 
+            if (audioFormat.ContainsIgnoreCase("eac3"))
+            {
                 return "EAC3";
             }
 
-            if (audioFormat.ContainsIgnoreCase("AC-3"))
+            if (audioFormat.ContainsIgnoreCase("ac3"))
             {
                 return "AC3";
             }
 
-            if (audioFormat.ContainsIgnoreCase("AAC"))
+            if (audioFormat.ContainsIgnoreCase("aac"))
             {
                 if (audioCodecID == "A_AAC/MPEG4/LC/SBR")
                 {
@@ -133,40 +115,32 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
                 return "MP3";
             }
 
-            if (audioFormat.ContainsIgnoreCase("MPEG Audio"))
+            if (audioFormat.ContainsIgnoreCase("mp2"))
             {
-                if (mediaInfo.AudioCodecID == "55" || mediaInfo.AudioCodecID == "A_MPEG/L3" || mediaInfo.AudioProfile == "Layer 3")
-                {
-                    return "MP3";
-                }
-
-                if (mediaInfo.AudioCodecID == "A_MPEG/L2" || mediaInfo.AudioProfile == "Layer 2")
-                {
-                    return "MP2";
-                }
+                return "MP2";
             }
 
-            if (audioFormat.ContainsIgnoreCase("Opus"))
+            if (audioFormat.ContainsIgnoreCase("opus"))
             {
                 return "Opus";
             }
 
-            if (audioFormat.ContainsIgnoreCase("PCM"))
+            if (audioFormat.ContainsIgnoreCase("pcm"))
             {
                 return "PCM";
             }
 
-            if (audioFormat.ContainsIgnoreCase("ADPCM"))
+            if (audioFormat.ContainsIgnoreCase("adpcm"))
             {
                 return "PCM";
             }
 
-            if (audioFormat.ContainsIgnoreCase("Vorbis"))
+            if (audioFormat.ContainsIgnoreCase("vorbis"))
             {
                 return "Vorbis";
             }
 
-            if (audioFormat.ContainsIgnoreCase("WMA"))
+            if (audioFormat.ContainsIgnoreCase("wmav2"))
             {
                 return "WMA";
             }
@@ -178,76 +152,14 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
 
             Logger.Debug()
                   .Message("Unknown audio format: '{0}' in '{1}'.", string.Join(", ", mediaInfo.AudioFormat, audioCodecID, audioProfile, audioCodecLibrary, mediaInfo.AudioAdditionalFeatures), sceneName)
-                  .WriteSentryWarn("UnknownAudioFormat", mediaInfo.ContainerFormat, mediaInfo.AudioFormat, audioCodecID)
+                  .WriteSentryWarn("UnknownAudioFormatFFProbe", mediaInfo.ContainerFormat, mediaInfo.AudioFormat, audioCodecID)
                   .Write();
 
             return mediaInfo.AudioFormat;
         }
 
-        public static string FormatAudioCodecLegacy(MediaInfoModel mediaInfo, string sceneName)
-        {
-            var audioFormat = mediaInfo.AudioFormat;
-
-            if (audioFormat.IsNullOrWhiteSpace())
-            {
-                return audioFormat;
-            }
-
-            if (audioFormat.EqualsIgnoreCase("AC-3"))
-            {
-                return "AC3";
-            }
-
-            if (audioFormat.EqualsIgnoreCase("E-AC-3"))
-            {
-                return "EAC3";
-            }
-
-            if (audioFormat.EqualsIgnoreCase("AAC"))
-            {
-                return "AAC";
-            }
-
-            if (audioFormat.EqualsIgnoreCase("MPEG Audio") && mediaInfo.AudioProfile == "Layer 3")
-            {
-                return "MP3";
-            }
-
-            if (audioFormat.EqualsIgnoreCase("DTS"))
-            {
-                return "DTS";
-            }
-
-            if (audioFormat.EqualsIgnoreCase("TrueHD"))
-            {
-                return "TrueHD";
-            }
-
-            if (audioFormat.EqualsIgnoreCase("FLAC"))
-            {
-                return "FLAC";
-            }
-
-            if (audioFormat.EqualsIgnoreCase("Vorbis"))
-            {
-                return "Vorbis";
-            }
-
-            if (audioFormat.EqualsIgnoreCase("Opus"))
-            {
-                return "Opus";
-            }
-
-            return audioFormat;
-        }
-
         public static string FormatVideoCodec(MediaInfoModel mediaInfo, string sceneName)
         {
-            if (mediaInfo.VideoFormat == null)
-            {
-                return FormatVideoCodecLegacy(mediaInfo, sceneName);
-            }
-
             var videoFormat = mediaInfo.VideoFormat.Trim().Split(new[] { " / " }, StringSplitOptions.RemoveEmptyEntries);
             var videoCodecID = mediaInfo.VideoCodecID ?? string.Empty;
             var videoProfile = mediaInfo.VideoProfile ?? string.Empty;
@@ -260,12 +172,12 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
                 return result;
             }
 
-            if (videoFormat.ContainsIgnoreCase("x264"))
+            if (videoFormat.ContainsIgnoreCase("h264"))
             {
                 return "x264";
             }
 
-            if (videoFormat.ContainsIgnoreCase("AVC") || videoFormat.ContainsIgnoreCase("V.MPEG4/ISO/AVC"))
+            if (videoFormat.ContainsIgnoreCase("avc") || videoFormat.ContainsIgnoreCase("V.MPEG4/ISO/AVC"))
             {
                 if (videoCodecLibrary.StartsWithIgnoreCase("x264"))
                 {
@@ -275,7 +187,7 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
                 return GetSceneNameMatch(sceneName, "AVC", "x264", "h264");
             }
 
-            if (videoFormat.ContainsIgnoreCase("HEVC") || videoFormat.ContainsIgnoreCase("V_MPEGH/ISO/HEVC"))
+            if (videoFormat.ContainsIgnoreCase("hevc") || videoFormat.ContainsIgnoreCase("V_MPEGH/ISO/HEVC"))
             {
                 if (videoCodecLibrary.StartsWithIgnoreCase("x265"))
                 {
@@ -285,25 +197,12 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
                 return GetSceneNameMatch(sceneName, "HEVC", "x265", "h265");
             }
 
-            if (videoFormat.ContainsIgnoreCase("MPEG Video"))
-            {
-                if (videoCodecID == "2" || videoCodecID == "V_MPEG2")
-                {
-                    return "MPEG2";
-                }
-
-                if (videoCodecID.IsNullOrWhiteSpace())
-                {
-                    return "MPEG";
-                }
-            }
-
-            if (videoFormat.ContainsIgnoreCase("MPEG-2 Video"))
+            if (videoFormat.ContainsIgnoreCase("mpegvideo"))
             {
                 return "MPEG2";
             }
 
-            if (videoFormat.ContainsIgnoreCase("MPEG-4 Visual"))
+            if (videoFormat.ContainsIgnoreCase("m4v"))
             {
                 if (videoCodecID.ContainsIgnoreCase("XVID") ||
                     videoCodecLibrary.StartsWithIgnoreCase("XviD"))
@@ -320,7 +219,7 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
                 }
             }
 
-            if (videoFormat.ContainsIgnoreCase("MPEG-4 Visual") || videoFormat.ContainsIgnoreCase("mp4v"))
+            if (videoFormat.ContainsIgnoreCase("m4v"))
             {
                 result = GetSceneNameMatch(sceneName, "XviD", "DivX", "");
                 if (result.IsNotNullOrWhiteSpace())
@@ -355,12 +254,12 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
                 }
             }
 
-            if (videoFormat.ContainsIgnoreCase("VC-1"))
+            if (videoFormat.ContainsIgnoreCase("vc1"))
             {
                 return "VC1";
             }
 
-            if (videoFormat.ContainsIgnoreCase("AV1"))
+            if (videoFormat.ContainsIgnoreCase("av1"))
             {
                 return "AV1";
             }
@@ -401,188 +300,36 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
 
             Logger.Debug()
                   .Message("Unknown video format: '{0}' in '{1}'.", string.Join(", ", mediaInfo.VideoFormat, videoCodecID, videoProfile, videoCodecLibrary), sceneName)
-                  .WriteSentryWarn("UnknownVideoFormat", mediaInfo.ContainerFormat, mediaInfo.VideoFormat, videoCodecID)
+                  .WriteSentryWarn("UnknownVideoFormatFFProbe", mediaInfo.ContainerFormat, mediaInfo.VideoFormat, videoCodecID)
                   .Write();
 
             return result;
         }
 
-        public static string FormatVideoCodecLegacy(MediaInfoModel mediaInfo, string sceneName)
-        {
-            var videoCodec = mediaInfo.VideoCodec;
-
-            if (videoCodec.IsNullOrWhiteSpace())
-            {
-                return videoCodec;
-            }
-
-            if (videoCodec == "AVC")
-            {
-                return GetSceneNameMatch(sceneName, "AVC", "h264", "x264");
-            }
-
-            if (videoCodec == "V_MPEGH/ISO/HEVC" || videoCodec == "HEVC")
-            {
-                return GetSceneNameMatch(sceneName, "HEVC", "h265", "x265");
-            }
-
-            if (videoCodec == "MPEG-2 Video")
-            {
-                return "MPEG2";
-            }
-
-            if (videoCodec == "MPEG-4 Visual")
-            {
-                return GetSceneNameMatch(sceneName, "DivX", "XviD");
-            }
-
-            if (videoCodec.StartsWithIgnoreCase("XviD"))
-            {
-                return "XviD";
-            }
-
-            if (videoCodec.StartsWithIgnoreCase("DivX"))
-            {
-                return "DivX";
-            }
-
-            if (videoCodec.EqualsIgnoreCase("VC-1"))
-            {
-                return "VC1";
-            }
-
-            return videoCodec;
-        }
-
         private static decimal? FormatAudioChannelsFromAudioChannelPositions(MediaInfoModel mediaInfo)
         {
-            var audioChannelPositions = mediaInfo.AudioChannelPositions;
-            var audioFormat = mediaInfo.AudioFormat;
-
-            if (audioChannelPositions.IsNullOrWhiteSpace())
+            var match = PositionRegex.Match(mediaInfo.AudioChannelPositions);
+            if (match.Success)
             {
-                return null;
+                return decimal.Parse(match.Groups["position"].Value);
             }
 
-            try
-            {
-                if (audioChannelPositions.Contains("+"))
-                {
-                    return audioChannelPositions.Split('+')
-                                                .Sum(s => decimal.Parse(s.Trim(), CultureInfo.InvariantCulture));
-                }
-
-                if (audioChannelPositions.Contains("/"))
-                {
-                    var channelStringList = Regex.Replace(audioChannelPositions,
-                            @"^\d+\sobjects",
-                            "",
-                            RegexOptions.Compiled | RegexOptions.IgnoreCase)
-                        .Replace("Object Based / ", "")
-                        .Split(new string[] { " / " }, StringSplitOptions.RemoveEmptyEntries)
-                        .FirstOrDefault()
-                        ?.Split('/');
-
-                    var positions = default(decimal);
-
-                    if (channelStringList == null)
-                    {
-                        return 0;
-                    }
-
-                    foreach (var channel in channelStringList)
-                    {
-                        var channelSplit = channel.Split(new string[] { "." }, StringSplitOptions.None);
-
-                        if (channelSplit.Length == 3)
-                        {
-                            positions += decimal.Parse(string.Format("{0}.{1}", channelSplit[1], channelSplit[2]), CultureInfo.InvariantCulture);
-                        }
-                        else
-                        {
-                            positions += decimal.Parse(channel, CultureInfo.InvariantCulture);
-                        }
-                    }
-
-                    return positions;
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Warn()
-                      .Message("Unable to format audio channels using 'AudioChannelPositions', with a value of: '{0}' and '{1}'. Error {2}", audioChannelPositions, mediaInfo.AudioChannelPositionsTextContainer, ex.Message)
-                      .WriteSentryWarn("UnknownAudioChannelFormat", audioChannelPositions, mediaInfo.AudioChannelPositionsTextContainer)
-                      .Write();
-            }
-
-            return null;
-        }
-
-        private static decimal? FormatAudioChannelsFromAudioChannelPositionsText(MediaInfoModel mediaInfo)
-        {
-            var audioChannelPositionsTextContainer = mediaInfo.AudioChannelPositionsTextContainer;
-            var audioChannelPositionsTextStream = mediaInfo.AudioChannelPositionsTextStream;
-            var audioChannelsContainer = mediaInfo.AudioChannelsContainer;
-            var audioChannelsStream = mediaInfo.AudioChannelsStream;
-
-            //Skip if the positions texts give us nothing
-            if ((audioChannelPositionsTextContainer.IsNullOrWhiteSpace() || audioChannelPositionsTextContainer == "Object Based") &&
-                    (audioChannelPositionsTextStream.IsNullOrWhiteSpace() || audioChannelPositionsTextStream == "Object Based"))
-            {
-                return null;
-            }
-
-            try
-            {
-                if (audioChannelsStream > 0)
-                {
-                    return audioChannelPositionsTextStream.ContainsIgnoreCase("LFE") ? audioChannelsStream - 1 + 0.1m : audioChannelsStream;
-                }
-
-                return audioChannelPositionsTextContainer.ContainsIgnoreCase("LFE") ? audioChannelsContainer - 1 + 0.1m : audioChannelsContainer;
-            }
-            catch (Exception e)
-            {
-                Logger.Warn(e, "Unable to format audio channels using 'AudioChannelPositionsText' or 'AudioChannelPositionsTextStream', with value of: '{0}' and '{1}", audioChannelPositionsTextContainer, audioChannelPositionsTextStream);
-            }
-
-            return null;
+            return 0;
         }
 
         private static decimal? FormatAudioChannelsFromAudioChannels(MediaInfoModel mediaInfo)
         {
-            var audioChannelsContainer = mediaInfo.AudioChannelsContainer;
             var audioChannelsStream = mediaInfo.AudioChannelsStream;
 
             var audioFormat = (mediaInfo.AudioFormat ?? string.Empty).Trim().Split(new[] { " / " }, StringSplitOptions.RemoveEmptyEntries);
-            var splitAdditionalFeatures = (mediaInfo.AudioAdditionalFeatures ?? string.Empty).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-            // Workaround https://github.com/MediaArea/MediaInfo/issues/299 for DTS-X Audio
-            if (audioFormat.ContainsIgnoreCase("DTS") &&
-                splitAdditionalFeatures.ContainsIgnoreCase("XLL") &&
-                splitAdditionalFeatures.ContainsIgnoreCase("X") &&
-                audioChannelsContainer > 0)
-            {
-                return audioChannelsContainer - 1 + 0.1m;
-            }
 
             // FLAC 6 channels is likely 5.1
-            if (audioFormat.ContainsIgnoreCase("FLAC") && audioChannelsContainer == 6)
+            if (audioFormat.ContainsIgnoreCase("flac") && audioChannelsStream == 6)
             {
                 return 5.1m;
             }
 
-            if (mediaInfo.SchemaRevision > 5)
-            {
-                return audioChannelsStream > 0 ? audioChannelsStream : audioChannelsContainer;
-            }
-
-            if (mediaInfo.SchemaRevision >= 3)
-            {
-                return audioChannelsContainer;
-            }
-
-            return null;
+            return audioChannelsStream;
         }
 
         private static string GetSceneNameMatch(string sceneName, params string[] tokens)
@@ -603,11 +350,6 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
 
         public static string FormatVideoDynamicRange(MediaInfoModel mediaInfo)
         {
-            if (mediaInfo.VideoHdrFormat.IsNotNullOrWhiteSpace())
-            {
-                return VideoDynamicRangeHdr;
-            }
-
             if (mediaInfo.VideoBitDepth >= 10 &&
                 mediaInfo.VideoColourPrimaries.IsNotNullOrWhiteSpace() &&
                 mediaInfo.VideoTransferCharacteristics.IsNotNullOrWhiteSpace())

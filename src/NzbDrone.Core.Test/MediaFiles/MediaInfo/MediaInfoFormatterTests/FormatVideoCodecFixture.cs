@@ -5,6 +5,7 @@ using NzbDrone.Test.Common;
 
 namespace NzbDrone.Core.Test.MediaFiles.MediaInfo.MediaInfoFormatterTests
 {
+    [Ignore("WIP")]
     [TestFixture]
     public class FormatVideoCodecFixture : TestBase
     {
