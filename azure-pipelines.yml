@@ -241,6 +241,7 @@ stages:
       - bash: ./build.sh --packages --enable-bsd
         displayName: Create Packages
       - bash: |
+          find . -name "ffprobe" -exec chmod a+x {} \;
           find . -name "Radarr" -exec chmod a+x {} \;
           find . -name "Radarr.Update" -exec chmod a+x {} \;
         displayName: Set executable bits
@@ -425,6 +426,10 @@ stages:
       - powershell: Set-Service SCardSvr -StartupType Manual
         displayName: Enable Windows Test Service
         condition: and(succeeded(), eq(variables['osName'], 'Windows'))
+      - bash: |
+          chmod a+x _tests/ffprobe
+        displayName: Make ffprobe Executable
+        condition: and(succeeded(), eq(variables['osName'], 'Mac'))
       - bash: find ${TESTSFOLDER} -name "Radarr.Test.Dummy" -exec chmod a+x {} \;
         displayName: Make Test Dummy Executable
         condition: and(succeeded(), ne(variables['osName'], 'Windows'))

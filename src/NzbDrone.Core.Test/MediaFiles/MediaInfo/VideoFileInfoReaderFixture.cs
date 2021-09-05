@@ -9,7 +9,6 @@ using NzbDrone.Test.Common.Categories;
 
 namespace NzbDrone.Core.Test.MediaFiles.MediaInfo
 {
-    [Platform(Exclude = "MacOsX")]
     [TestFixture]
     [DiskAccessTest]
     public class VideoFileInfoReaderFixture : CoreTest<VideoFileInfoReader>
