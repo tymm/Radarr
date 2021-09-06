@@ -365,7 +365,7 @@ namespace NzbDrone.Core.Organizer
                 mediaInfoSubtitleLanguages = $"[{mediaInfoSubtitleLanguages}]";
             }
 
-            var videoBitDepth = movieFile.MediaInfo.VideoBitDepth > 0 ? movieFile.MediaInfo.VideoBitDepth.ToString() : string.Empty;
+            var videoBitDepth = movieFile.MediaInfo.VideoBitDepth > 0 ? movieFile.MediaInfo.VideoBitDepth.ToString() : 8.ToString();
             var audioChannelsFormatted = audioChannels > 0 ?
                                 audioChannels.ToString("F1", CultureInfo.InvariantCulture) :
                                 string.Empty;
@@ -419,23 +419,9 @@ namespace NzbDrone.Core.Organizer
             var cultures = CultureInfo.GetCultures(CultureTypes.NeutralCultures);
             for (int i = 0; i < tokens.Count; i++)
             {
-                if (tokens[i] == "Swedis")
-                {
-                    // Probably typo in mediainfo (should be 'Swedish')
-                    tokens[i] = "SV";
-                    continue;
-                }
-
-                if (tokens[i] == "Chinese" && OsInfo.IsNotWindows)
-                {
-                    // Mono only has 'Chinese (Simplified)' & 'Chinese (Traditional)'
-                    tokens[i] = "ZH";
-                    continue;
-                }
-
                 try
                 {
-                    var cultureInfo = cultures.FirstOrDefault(p => p.EnglishName.RemoveAccent() == tokens[i]);
+                    var cultureInfo = cultures.FirstOrDefault(p => p.ThreeLetterISOLanguageName.RemoveAccent() == tokens[i]);
 
                     if (cultureInfo != null)
                     {

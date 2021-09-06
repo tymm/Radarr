@@ -62,7 +62,6 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
                     VideoCodecLibrary = "",
                     VideoBitrate = mediaInfo.PrimaryVideoStream.BitRate,
                     VideoBitDepth = mediaInfo.PrimaryVideoStream.BitsPerRawSample,
-                    VideoMultiViewCount = mediaInfo.VideoStreams.Count,
                     VideoColourPrimaries = mediaInfo.PrimaryVideoStream.ColorPrimaries,
                     VideoTransferCharacteristics = mediaInfo.PrimaryVideoStream.ColorTransfer,
                     Height = mediaInfo.PrimaryVideoStream.Height,

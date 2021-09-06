@@ -370,17 +370,17 @@ namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
             {
                 VideoFormat = "avc",
                 AudioFormat = "dts",
-                AudioLanguages = "English/Spanish",
-                Subtitles = "English/Spanish/Italian"
+                AudioLanguages = "eng/spa",
+                Subtitles = "eng/spa/ita"
             };
 
             Subject.BuildFileName(_movie, _movieFile)
                    .Should().Be("South.Park.H264.DTS[EN+ES].[EN+ES+IT]");
         }
 
-        [TestCase("Norwegian Bokmal", "NB")]
-        [TestCase("Swedis", "SV")]
-        [TestCase("Chinese", "ZH")]
+        [TestCase("nob", "NB")]
+        [TestCase("swe", "SV")]
+        [TestCase("zho", "ZH")]
         public void should_format_languagecodes_properly(string language, string code)
         {
             _namingConfig.StandardMovieFormat = "{Movie.Title}.{MEDIAINFO.FULL}";
@@ -390,7 +390,7 @@ namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
                 VideoFormat = "avc",
                 AudioFormat = "dts",
                 AudioChannelsContainer = 6,
-                AudioLanguages = "English",
+                AudioLanguages = "eng",
                 Subtitles = language,
                 SchemaRevision = 3
             };
@@ -408,8 +408,8 @@ namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
             {
                 VideoFormat = "avc",
                 AudioFormat = "dts",
-                AudioLanguages = "English",
-                Subtitles = "English/Spanish/Italian"
+                AudioLanguages = "eng",
+                Subtitles = "eng/spa/ita"
             };
 
             Subject.BuildFileName(_movie, _movieFile)
@@ -427,7 +427,7 @@ namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
                 VideoMultiViewCount = 2,
                 AudioFormat = "dts",
                 AudioLanguages = "English",
-                Subtitles = "English/Spanish/Italian"
+                Subtitles = "eng/spa/ita"
             };
 
             Subject.BuildFileName(_movie, _movieFile)
@@ -631,8 +631,8 @@ namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
                    .Should().Be(releaseGroup);
         }
 
-        [TestCase("English", "")]
-        [TestCase("English/German", "[EN+DE]")]
+        [TestCase("eng", "")]
+        [TestCase("eng/deu", "[EN+DE]")]
         public void should_format_audio_languages(string audioLanguages, string expected)
         {
             _movieFile.ReleaseGroup = null;
@@ -645,8 +645,8 @@ namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
                    .Should().Be(expected);
         }
 
-        [TestCase("English", "[EN]")]
-        [TestCase("English/German", "[EN+DE]")]
+        [TestCase("eng", "[EN]")]
+        [TestCase("eng/deu", "[EN+DE]")]
         public void should_format_audio_languages_all(string audioLanguages, string expected)
         {
             _movieFile.ReleaseGroup = null;
