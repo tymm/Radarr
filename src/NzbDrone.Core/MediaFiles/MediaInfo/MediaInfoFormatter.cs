@@ -15,6 +15,7 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
         private const string ValidHdrColourPrimaries = "bt2020";
         private const string VideoDynamicRangeHdr = "HDR";
         private static readonly string[] ValidHdrTransferFunctions = { "PQ", "HLG", "smpte2084" };
+        private static readonly string[] DolbyVisionCodecIds = { "dvhe", "dvh1" };
 
         private static readonly Regex PositionRegex = new Regex(@"(?<position>^\d\.\d)", RegexOptions.Compiled);
 
@@ -34,11 +35,15 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
 
         public static string FormatAudioCodec(MediaInfoModel mediaInfo, string sceneName)
         {
+            if (mediaInfo.AudioFormat == null)
+            {
+                return null;
+            }
+
             var audioFormat = mediaInfo.AudioFormat.Trim().Split(new[] { " / " }, StringSplitOptions.RemoveEmptyEntries);
             var audioCodecID = mediaInfo.AudioCodecID ?? string.Empty;
             var audioProfile = mediaInfo.AudioProfile ?? string.Empty;
             var audioCodecLibrary = mediaInfo.AudioCodecLibrary ?? string.Empty;
-            var splitAdditionalFeatures = (mediaInfo.AudioAdditionalFeatures ?? string.Empty).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
             if (audioFormat.Empty())
             {
@@ -62,24 +67,34 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
 
             if (audioFormat.ContainsIgnoreCase("dts"))
             {
-                if (splitAdditionalFeatures.ContainsIgnoreCase("XLL"))
+                if (audioProfile == "DTS:X")
                 {
-                    if (splitAdditionalFeatures.ContainsIgnoreCase("X"))
-                    {
-                        return "DTS-X";
-                    }
+                    return "DTS-X";
+                }
 
+                if (audioProfile == "DTS-HD MA")
+                {
                     return "DTS-HD MA";
                 }
 
-                if (splitAdditionalFeatures.ContainsIgnoreCase("ES"))
+                if (audioProfile == "DTS-ES")
                 {
                     return "DTS-ES";
                 }
 
-                if (splitAdditionalFeatures.ContainsIgnoreCase("XBR"))
+                if (audioProfile == "DTS-HD HRA")
                 {
                     return "DTS-HD HRA";
+                }
+
+                if (audioProfile == "DTS Express")
+                {
+                    return "DTS Express";
+                }
+
+                if (audioProfile == "DTS 96/24")
+                {
+                    return "DTS 96/24";
                 }
 
                 return "DTS";
@@ -151,7 +166,7 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
             }
 
             Logger.Debug()
-                  .Message("Unknown audio format: '{0}' in '{1}'.", string.Join(", ", mediaInfo.AudioFormat, audioCodecID, audioProfile, audioCodecLibrary, mediaInfo.AudioAdditionalFeatures), sceneName)
+                  .Message("Unknown audio format: '{0}' in '{1}'.", string.Join(", ", mediaInfo.AudioFormat, audioCodecID, audioProfile, audioCodecLibrary), sceneName)
                   .WriteSentryWarn("UnknownAudioFormatFFProbe", mediaInfo.ContainerFormat, mediaInfo.AudioFormat, audioCodecID)
                   .Write();
 
@@ -160,6 +175,11 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
 
         public static string FormatVideoCodec(MediaInfoModel mediaInfo, string sceneName)
         {
+            if (mediaInfo.VideoFormat == null)
+            {
+                return null;
+            }
+
             var videoFormat = mediaInfo.VideoFormat.Trim().Split(new[] { " / " }, StringSplitOptions.RemoveEmptyEntries);
             var videoCodecID = mediaInfo.VideoCodecID ?? string.Empty;
             var videoProfile = mediaInfo.VideoProfile ?? string.Empty;
@@ -308,6 +328,11 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
 
         private static decimal? FormatAudioChannelsFromAudioChannelPositions(MediaInfoModel mediaInfo)
         {
+            if (mediaInfo.AudioChannelPositions == null)
+            {
+                return 0;
+            }
+
             var match = PositionRegex.Match(mediaInfo.AudioChannelPositions);
             if (match.Success)
             {
@@ -350,10 +375,17 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
 
         public static string FormatVideoDynamicRange(MediaInfoModel mediaInfo)
         {
+            if (DolbyVisionCodecIds.ContainsIgnoreCase(mediaInfo.VideoCodecID))
+            {
+                // Dolby vision
+                return VideoDynamicRangeHdr;
+            }
+
             if (mediaInfo.VideoBitDepth >= 10 &&
                 mediaInfo.VideoColourPrimaries.IsNotNullOrWhiteSpace() &&
                 mediaInfo.VideoTransferCharacteristics.IsNotNullOrWhiteSpace())
             {
+                // Other HDR
                 if (mediaInfo.VideoColourPrimaries.EqualsIgnoreCase(ValidHdrColourPrimaries) &&
                     ValidHdrTransferFunctions.Any(mediaInfo.VideoTransferCharacteristics.Contains))
                 {

@@ -1,8 +1,10 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using FFMpegCore;
 using NLog;
 using NzbDrone.Common.Disk;
+using NzbDrone.Common.EnvironmentInfo;
 using NzbDrone.Common.Extensions;
 
 namespace NzbDrone.Core.MediaFiles.MediaInfo
@@ -25,6 +27,13 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
         {
             _diskProvider = diskProvider;
             _logger = logger;
+
+            // We bundle ffprobe for windows and linux-x64 currently
+            // TODO: move binaries into a nuget, provide for all platforms
+            if (OsInfo.IsWindows || (OsInfo.Os == Os.Linux && RuntimeInformation.OSArchitecture == Architecture.X64))
+            {
+                GlobalFFOptions.Configure(options => options.BinaryFolder = AppDomain.CurrentDomain.BaseDirectory);
+            }
         }
 
         public MediaInfoModel GetMediaInfo(string filename)
@@ -62,16 +71,15 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
                     AudioCodecID = mediaInfo.PrimaryAudioStream.CodecTagString,
                     AudioProfile = mediaInfo.PrimaryAudioStream.Profile,
                     AudioCodecLibrary = "",
-                    AudioAdditionalFeatures = "",
                     AudioBitrate = mediaInfo.PrimaryAudioStream.BitRate,
                     RunTime = GetBestRuntime(audioRuntime, videoRuntime, generalRuntime),
                     AudioStreamCount = mediaInfo.AudioStreams.Count,
                     AudioChannelsContainer = 0,
                     AudioChannelsStream = mediaInfo.PrimaryAudioStream.Channels,
                     AudioChannelPositions = mediaInfo.PrimaryAudioStream.ChannelLayout,
-                    VideoFps = (decimal)mediaInfo.PrimaryVideoStream.FrameRate,
-                    AudioLanguages = mediaInfo.AudioStreams.SelectList(x => x.Language).ConcatToString(),
-                    Subtitles = mediaInfo.SubtitleStreams.SelectList(x => x.Language).ConcatToString(),
+                    VideoFps = mediaInfo.PrimaryVideoStream.FrameRate,
+                    AudioLanguages = mediaInfo.AudioStreams.SelectList(x => x.Language).ConcatToString("/"),
+                    Subtitles = mediaInfo.SubtitleStreams.SelectList(x => x.Language).ConcatToString("/"),
                     ScanType = "Progressive",
                     SchemaRevision = CURRENT_MEDIA_INFO_SCHEMA_REVISION
                 };

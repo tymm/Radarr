@@ -418,22 +418,18 @@ stages:
           buildType: 'current'
           artifactName: '$(testName)Tests'
           targetPath: $(testsFolder)
-      - bash: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
-        displayName: Install ffmpeg
-        condition: and(succeeded(), eq(variables['testName'], 'LinuxCore'))
       - powershell: Set-Service SCardSvr -StartupType Manual
         displayName: Enable Windows Test Service
         condition: and(succeeded(), eq(variables['osName'], 'Windows'))
       - bash: |
           chmod a+x _tests/ffprobe
         displayName: Make ffprobe Executable
-        condition: and(succeeded(), eq(variables['osName'], 'Mac'))
+        condition: and(succeeded(), or(eq(variables['osName'], 'Mac'), eq(variables['testName'], 'LinuxCore')))
       - bash: find ${TESTSFOLDER} -name "Radarr.Test.Dummy" -exec chmod a+x {} \;
         displayName: Make Test Dummy Executable
         condition: and(succeeded(), ne(variables['osName'], 'Windows'))
       - bash: |
+          ls -lR ${TESTSFOLDER}
           chmod a+x ${TESTSFOLDER}/test.sh
           ${TESTSFOLDER}/test.sh ${OSNAME} Unit Test
         displayName: Run Tests

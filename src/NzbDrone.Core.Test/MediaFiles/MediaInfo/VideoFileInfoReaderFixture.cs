@@ -40,7 +40,6 @@ namespace NzbDrone.Core.Test.MediaFiles.MediaInfo
 
             var info = Subject.GetMediaInfo(path);
 
-            info.VideoCodec.Should().BeNull();
             info.VideoFormat.Should().Be("h264");
             info.VideoCodecID.Should().Be("avc1");
             info.VideoProfile.Should().Be("Constrained Baseline");
@@ -81,7 +80,6 @@ namespace NzbDrone.Core.Test.MediaFiles.MediaInfo
 
             var info = Subject.GetMediaInfo(path);
 
-            info.VideoCodec.Should().BeNull();
             info.VideoFormat.Should().Be("h264");
             info.VideoCodecID.Should().Be("avc1");
             info.VideoProfile.Should().Be("Constrained Baseline");

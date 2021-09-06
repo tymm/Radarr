@@ -44,8 +44,7 @@ namespace NzbDrone.Core.Test.MediaFiles.MediaInfo.MediaInfoFormatterTests
                 AudioFormat = split[0],
                 AudioCodecID = split[1],
                 AudioProfile = split[2],
-                AudioCodecLibrary = split[3],
-                AudioAdditionalFeatures = split[4]
+                AudioCodecLibrary = split[3]
             };
 
             MediaInfoFormatter.FormatAudioCodec(mediaInfoModel, sceneName).Should().Be(expectedFormat);

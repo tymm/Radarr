@@ -65,7 +65,7 @@ namespace NzbDrone.Core.Test.NotificationTests
         [Test]
         public void should_add_collection_movie_if_valid_mediainfo()
         {
-            GiventValidMediaInfo(Quality.Bluray1080p, "3/2/0.1", "DTS", "Interlaced");
+            GiventValidMediaInfo(Quality.Bluray1080p, "5.1", "DTS", "Interlaced");
 
             Subject.AddMovieToCollection(_traktSettings, _downloadMessage.Movie, _downloadMessage.MovieFile);
 
@@ -81,7 +81,7 @@ namespace NzbDrone.Core.Test.NotificationTests
         [Test]
         public void should_format_audio_channels_to_one_decimal_when_adding_collection_movie()
         {
-            GiventValidMediaInfo(Quality.Bluray1080p, "2/0/0", "DTS", "Interlaced");
+            GiventValidMediaInfo(Quality.Bluray1080p, "2.0", "DTS", "Interlaced");
 
             Subject.AddMovieToCollection(_traktSettings, _downloadMessage.Movie, _downloadMessage.MovieFile);
 
