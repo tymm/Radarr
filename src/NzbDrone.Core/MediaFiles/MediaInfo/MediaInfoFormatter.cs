@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using NLog;
@@ -145,7 +144,7 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
                 return "PCM";
             }
 
-            if (audioFormat.ContainsIgnoreCase("adpcm"))
+            if (audioFormat.ContainsIgnoreCase("pcm_s24le"))
             {
                 return "PCM";
             }
@@ -207,7 +206,7 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
                 return GetSceneNameMatch(sceneName, "AVC", "x264", "h264");
             }
 
-            if (videoFormat.ContainsIgnoreCase("hevc") || videoFormat.ContainsIgnoreCase("V_MPEGH/ISO/HEVC"))
+            if (videoFormat.ContainsIgnoreCase("hevc"))
             {
                 if (videoCodecLibrary.StartsWithIgnoreCase("x265"))
                 {
@@ -217,15 +216,14 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
                 return GetSceneNameMatch(sceneName, "HEVC", "x265", "h265");
             }
 
-            if (videoFormat.ContainsIgnoreCase("mpegvideo"))
+            if (videoFormat.ContainsIgnoreCase("mpeg2video"))
             {
                 return "MPEG2";
             }
 
-            if (videoFormat.ContainsIgnoreCase("m4v"))
+            if (videoFormat.ContainsIgnoreCase("mpeg4"))
             {
-                if (videoCodecID.ContainsIgnoreCase("XVID") ||
-                    videoCodecLibrary.StartsWithIgnoreCase("XviD"))
+                if (videoCodecID.ContainsIgnoreCase("XVID"))
                 {
                     return "XviD";
                 }
