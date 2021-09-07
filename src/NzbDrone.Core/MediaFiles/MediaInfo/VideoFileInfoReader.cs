@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using FFMpegCore;
 using NLog;
@@ -49,36 +50,36 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
                 _logger.Debug("Getting media info from {0}", filename);
                 var mediaInfo = FFProbe.Analyse(filename);
 
-                var audioRuntime = mediaInfo.PrimaryAudioStream.Duration;
-                var videoRuntime = mediaInfo.PrimaryVideoStream.Duration;
+                var audioRuntime = mediaInfo.PrimaryAudioStream?.Duration;
+                var videoRuntime = mediaInfo.PrimaryVideoStream?.Duration;
                 var generalRuntime = mediaInfo.Format.Duration;
 
                 var mediaInfoModel = new MediaInfoModel
                 {
                     ContainerFormat = mediaInfo.Format.FormatLongName,
-                    VideoFormat = mediaInfo.PrimaryVideoStream.CodecName,
-                    VideoCodecID = mediaInfo.PrimaryVideoStream.CodecTagString,
-                    VideoProfile = mediaInfo.PrimaryVideoStream.Profile,
+                    VideoFormat = mediaInfo.PrimaryVideoStream?.CodecName,
+                    VideoCodecID = mediaInfo.PrimaryVideoStream?.CodecTagString,
+                    VideoProfile = mediaInfo.PrimaryVideoStream?.Profile,
                     VideoCodecLibrary = "",
-                    VideoBitrate = mediaInfo.PrimaryVideoStream.BitRate,
-                    VideoBitDepth = mediaInfo.PrimaryVideoStream.BitsPerRawSample,
-                    VideoColourPrimaries = mediaInfo.PrimaryVideoStream.ColorPrimaries,
-                    VideoTransferCharacteristics = mediaInfo.PrimaryVideoStream.ColorTransfer,
-                    Height = mediaInfo.PrimaryVideoStream.Height,
-                    Width = mediaInfo.PrimaryVideoStream.Width,
-                    AudioFormat = mediaInfo.PrimaryAudioStream.CodecName,
-                    AudioCodecID = mediaInfo.PrimaryAudioStream.CodecTagString,
-                    AudioProfile = mediaInfo.PrimaryAudioStream.Profile,
+                    VideoBitrate = mediaInfo.PrimaryVideoStream?.BitRate ?? 0,
+                    VideoBitDepth = mediaInfo.PrimaryVideoStream?.BitsPerRawSample ?? 0,
+                    VideoColourPrimaries = mediaInfo.PrimaryVideoStream?.ColorPrimaries,
+                    VideoTransferCharacteristics = mediaInfo.PrimaryVideoStream?.ColorTransfer,
+                    Height = mediaInfo.PrimaryVideoStream?.Height ?? 0,
+                    Width = mediaInfo.PrimaryVideoStream?.Width ?? 0,
+                    AudioFormat = mediaInfo.PrimaryAudioStream?.CodecName,
+                    AudioCodecID = mediaInfo.PrimaryAudioStream?.CodecTagString,
+                    AudioProfile = mediaInfo.PrimaryAudioStream?.Profile,
                     AudioCodecLibrary = "",
-                    AudioBitrate = mediaInfo.PrimaryAudioStream.BitRate,
+                    AudioBitrate = mediaInfo.PrimaryAudioStream?.BitRate ?? 0,
                     RunTime = GetBestRuntime(audioRuntime, videoRuntime, generalRuntime),
                     AudioStreamCount = mediaInfo.AudioStreams.Count,
                     AudioChannelsContainer = 0,
-                    AudioChannelsStream = mediaInfo.PrimaryAudioStream.Channels,
-                    AudioChannelPositions = mediaInfo.PrimaryAudioStream.ChannelLayout,
-                    VideoFps = mediaInfo.PrimaryVideoStream.FrameRate,
-                    AudioLanguages = mediaInfo.AudioStreams.SelectList(x => x.Language).ConcatToString("/"),
-                    Subtitles = mediaInfo.SubtitleStreams.SelectList(x => x.Language).ConcatToString("/"),
+                    AudioChannelsStream = mediaInfo.PrimaryAudioStream?.Channels ?? 0,
+                    AudioChannelPositions = mediaInfo.PrimaryAudioStream?.ChannelLayout,
+                    VideoFps = mediaInfo.PrimaryVideoStream?.FrameRate ?? 0,
+                    AudioLanguages = mediaInfo.AudioStreams?.Select(x => x.Language).Where(l => l.IsNotNullOrWhiteSpace()).ConcatToString("/") ?? string.Empty,
+                    Subtitles = mediaInfo.SubtitleStreams?.Select(x => x.Language).Where(l => l.IsNotNullOrWhiteSpace()).ConcatToString("/") ?? string.Empty,
                     ScanType = "Progressive",
                     SchemaRevision = CURRENT_MEDIA_INFO_SCHEMA_REVISION
                 };
@@ -100,19 +101,19 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
             return info?.RunTime;
         }
 
-        private TimeSpan GetBestRuntime(TimeSpan audio, TimeSpan video, TimeSpan general)
+        private TimeSpan GetBestRuntime(TimeSpan? audio, TimeSpan? video, TimeSpan general)
         {
-            if (video.TotalMilliseconds == 0)
+            if (!video.HasValue || video.Value.TotalMilliseconds == 0)
             {
-                if (audio.TotalMilliseconds == 0)
+                if (!audio.HasValue || audio.Value.TotalMilliseconds == 0)
                 {
                     return general;
                 }
 
-                return audio;
+                return audio.Value;
             }
 
-            return video;
+            return video.Value;
         }
     }
 }
