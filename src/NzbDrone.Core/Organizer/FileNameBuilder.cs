@@ -69,6 +69,31 @@ namespace NzbDrone.Core.Organizer
 
         private static readonly Regex ReservedDeviceNamesRegex = new Regex(@"^(?:aux|com[1-9]|con|lpt[1-9]|nul|prn)\.", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
+        // generated from https://www.loc.gov/standards/iso639-2/ISO-639-2_utf-8.txt
+        private static readonly Dictionary<string, string> Iso639BTMap = new Dictionary<string, string>
+        {
+            { "alb", "sqi" },
+            { "arm", "hye" },
+            { "baq", "eus" },
+            { "bur", "mya" },
+            { "chi", "zho" },
+            { "cze", "ces" },
+            { "dut", "nld" },
+            { "fre", "fra" },
+            { "geo", "kat" },
+            { "ger", "deu" },
+            { "gre", "ell" },
+            { "ice", "isl" },
+            { "mac", "mkd" },
+            { "mao", "mri" },
+            { "may", "msa" },
+            { "per", "fas" },
+            { "rum", "ron" },
+            { "slo", "slk" },
+            { "tib", "bod" },
+            { "wel", "cym" }
+        };
+
         public FileNameBuilder(INamingConfigService namingConfigService,
                                IQualityDefinitionService qualityDefinitionService,
                                IUpdateMediaInfo mediaInfoUpdater,
@@ -407,26 +432,27 @@ namespace NzbDrone.Core.Organizer
 
         private string GetLanguagesToken(string mediaInfoLanguages)
         {
-            List<string> tokens = new List<string>();
+            var tokens = new List<string>();
             foreach (var item in mediaInfoLanguages.Split('/'))
             {
-                if (!string.IsNullOrWhiteSpace(item))
+                if (!string.IsNullOrWhiteSpace(item) && item != "und")
                 {
                     tokens.Add(item.Trim());
                 }
             }
 
-            var cultures = CultureInfo.GetCultures(CultureTypes.NeutralCultures);
             for (int i = 0; i < tokens.Count; i++)
             {
                 try
                 {
-                    var cultureInfo = cultures.FirstOrDefault(p => p.ThreeLetterISOLanguageName.RemoveAccent() == tokens[i]);
-
-                    if (cultureInfo != null)
+                    var token = tokens[i].ToLowerInvariant();
+                    if (Iso639BTMap.TryGetValue(token, out var mapped))
                     {
-                        tokens[i] = cultureInfo.TwoLetterISOLanguageName.ToUpper();
+                        token = mapped;
                     }
+
+                    var cultureInfo = new CultureInfo(token);
+                    tokens[i] = cultureInfo.TwoLetterISOLanguageName.ToUpper();
                 }
                 catch
                 {
