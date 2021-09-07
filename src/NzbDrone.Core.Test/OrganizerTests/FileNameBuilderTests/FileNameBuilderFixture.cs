@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using FizzWare.NBuilder;
 using FluentAssertions;
+using Microsoft.DotNet.InternalAbstractions;
 using Moq;
 using NUnit.Framework;
 using NzbDrone.Core.CustomFormats;
@@ -19,6 +21,7 @@ using NzbDrone.Core.Test.Framework;
 
 namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
 {
+    [Platform(Exclude = "Win")]
     [TestFixture]
 
     public class FileNameBuilderFixture : CoreTest<FileNameBuilder>
