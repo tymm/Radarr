@@ -367,16 +367,10 @@ namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
         {
             _namingConfig.StandardMovieFormat = "{Movie.Title}.{MEDIAINFO.FULL}";
 
-            _movieFile.MediaInfo = new MediaInfoModel()
-            {
-                VideoFormat = "h264",
-                AudioFormat = "dts",
-                AudioLanguages = "eng/spa",
-                Subtitles = "eng/spa/ita"
-            };
+            _movieFile.MediaInfo = new MediaInfoModel(new[] { "eng", "spa" }, new[] { "eng", "spa", "ita" });
 
             Subject.BuildFileName(_movie, _movieFile)
-                   .Should().Be("South.Park.H264.DTS[EN+ES].[EN+ES+IT]");
+                   .Should().Be("South.Park.AVC.DTS[EN+ES].[EN+ES+IT]");
         }
 
         [TestCase("nob", "NB")]
@@ -395,18 +389,10 @@ namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
         {
             _namingConfig.StandardMovieFormat = "{Movie.Title}.{MEDIAINFO.FULL}";
 
-            _movieFile.MediaInfo = new MediaInfoModel()
-            {
-                VideoFormat = "h264",
-                AudioFormat = "dts",
-                AudioChannels = 6,
-                AudioLanguages = "eng",
-                Subtitles = language,
-                SchemaRevision = 3
-            };
+            _movieFile.MediaInfo = new MediaInfoModel(new[] { "eng" }, new[] { language });
 
             Subject.BuildFileName(_movie, _movieFile)
-                   .Should().Be($"South.Park.H264.DTS.[{code}]");
+                   .Should().Be($"South.Park.AVC.DTS.[{code}]");
         }
 
         [Test]
@@ -414,31 +400,19 @@ namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
         {
             _namingConfig.StandardMovieFormat = "{Movie.Title}.{MEDIAINFO.FULL}";
 
-            _movieFile.MediaInfo = new MediaInfoModel()
-            {
-                VideoFormat = "h264",
-                AudioFormat = "dts",
-                AudioLanguages = "eng",
-                Subtitles = "eng/spa/ita"
-            };
+            _movieFile.MediaInfo = new MediaInfoModel(new[] { "eng", }, new[] { "eng", "spa", "ita" });
 
             Subject.BuildFileName(_movie, _movieFile)
-                   .Should().Be("South.Park.H264.DTS.[EN+ES+IT]");
+                   .Should().Be("South.Park.AVC.DTS.[EN+ES+IT]");
         }
 
+        [Ignore("not currently supported")]
         [Test]
         public void should_format_mediainfo_3d_properly()
         {
             _namingConfig.StandardMovieFormat = "{Movie.Title}.{MEDIAINFO.3D}.{MediaInfo.Simple}";
 
-            _movieFile.MediaInfo = new MediaInfoModel()
-            {
-                VideoFormat = "h264",
-                VideoMultiViewCount = 2,
-                AudioFormat = "dts",
-                AudioLanguages = "English",
-                Subtitles = "eng/spa/ita"
-            };
+            _movieFile.MediaInfo = new MediaInfoModel(videoMultiViewCount: 2);
 
             Subject.BuildFileName(_movie, _movieFile)
                    .Should().Be("South.Park.3D.h264.DTS");
@@ -759,20 +733,19 @@ namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
             int videoBitDepth = 8,
             string videoColourPrimaries = "",
             string videoTransferCharacteristics = "",
-            string audioLanguages = "English",
-            string subtitles = "English/Spanish/Italian",
+            string audioLanguages = "eng",
+            string subtitles = "eng/spa/ita",
             int schemaRevision = 5)
         {
-            _movieFile.MediaInfo = new MediaInfoModel
+            _movieFile.MediaInfo = new MediaInfoModel(audioLanguages.Split("/"),
+                subtitles.Split("/"),
+                videoCodec,
+                bitDepth: videoBitDepth,
+                colorPrimaries: videoColourPrimaries,
+                colorTransfer: videoTransferCharacteristics,
+                audioFormat: audioCodec,
+                audioChannels: audioChannels)
             {
-                VideoFormat = videoCodec,
-                AudioFormat = audioCodec,
-                AudioChannels = audioChannels,
-                AudioLanguages = audioLanguages,
-                Subtitles = subtitles,
-                VideoBitDepth = videoBitDepth,
-                VideoColourPrimaries = videoColourPrimaries,
-                VideoTransferCharacteristics = videoTransferCharacteristics,
                 SchemaRevision = schemaRevision
             };
         }

@@ -70,7 +70,7 @@ namespace NzbDrone.Core.Organizer
         private static readonly Regex ReservedDeviceNamesRegex = new Regex(@"^(?:aux|com[1-9]|con|lpt[1-9]|nul|prn)\.", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         // generated from https://www.loc.gov/standards/iso639-2/ISO-639-2_utf-8.txt
-        private static readonly Dictionary<string, string> Iso639BTMap = new Dictionary<string, string>
+        public static readonly Dictionary<string, string> Iso639BTMap = new Dictionary<string, string>
         {
             { "alb", "sqi" },
             { "arm", "hye" },

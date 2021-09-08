@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using NLog;
@@ -157,8 +158,8 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
             }
 
             Logger.Debug()
-                  .Message("Unknown audio format: '{0}' in '{1}'.", mediaInfo.PrimaryAudioStream?.ToJson(), sceneName)
-                  .WriteSentryWarn("UnknownAudioFormatFFProbe", mediaInfo.Format?.FormatLongName, mediaInfo.AudioFormat, audioCodecID)
+                  .Message("Unknown audio format: '{0}' in '{1}'.", mediaInfo.RawData, sceneName)
+                  .WriteSentryWarn("UnknownAudioFormatFFProbe", mediaInfo.Analysis.Format?.FormatLongName, mediaInfo.AudioFormat, audioCodecID)
                   .Write();
 
             return mediaInfo.AudioFormat;
@@ -259,8 +260,8 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
             }
 
             Logger.Debug()
-                  .Message("Unknown video format: '{0}' in '{1}'.", mediaInfo.PrimaryVideoStream?.ToJson(), sceneName)
-                  .WriteSentryWarn("UnknownVideoFormatFFProbe", mediaInfo.Format?.FormatLongName, videoFormat, videoCodecID)
+                  .Message("Unknown video format: '{0}' in '{1}'.", mediaInfo.RawData, sceneName)
+                  .WriteSentryWarn("UnknownVideoFormatFFProbe", mediaInfo.Analysis.Format?.FormatLongName, videoFormat, videoCodecID)
                   .Write();
 
             return result;
@@ -276,7 +277,7 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
             var match = PositionRegex.Match(mediaInfo.AudioChannelPositions);
             if (match.Success)
             {
-                return decimal.Parse(match.Groups["position"].Value);
+                return decimal.Parse(match.Groups["position"].Value, NumberStyles.Number, CultureInfo.InvariantCulture);
             }
 
             return 0;

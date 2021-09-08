@@ -5,6 +5,7 @@ using NzbDrone.Test.Common;
 
 namespace NzbDrone.Core.Test.MediaFiles.MediaInfo.MediaInfoFormatterTests
 {
+    /*
     [Ignore("WIP")]
     [TestFixture]
     public class FormatAudioCodecFixture : TestBase
@@ -59,5 +60,5 @@ namespace NzbDrone.Core.Test.MediaFiles.MediaInfo.MediaInfoFormatterTests
 
             MediaInfoFormatter.FormatAudioCodec(mediaInfoModel, sceneName).Should().Be(mediaInfoModel.AudioFormat);
         }
-    }
+    }*/
 }

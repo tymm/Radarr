@@ -25,9 +25,7 @@ namespace NzbDrone.Core.Test.MediaFiles.MovieImport.Aggregation.Aggregators.Augm
         [Test]
         public void should_return_null_if_media_info_width_is_zero()
         {
-            var mediaInfo = Builder<MediaInfoModel>.CreateNew()
-                                                   .With(m => m.Width = 0)
-                                                   .Build();
+            var mediaInfo = new MediaInfoModel(width: 0, height: 100);
 
             var localMovie = Builder<LocalMovie>.CreateNew()
                                                     .With(l => l.MediaInfo = mediaInfo)
@@ -55,10 +53,7 @@ namespace NzbDrone.Core.Test.MediaFiles.MovieImport.Aggregation.Aggregators.Augm
         [TestCase(100, 1, Resolution.R480p)]
         public void should_return_closest_resolution(int mediaInfoWidth, int mediaInfoHeight, Resolution expectedResolution)
         {
-            var mediaInfo = Builder<MediaInfoModel>.CreateNew()
-                                                   .With(m => m.Width = mediaInfoWidth)
-                                                   .With(m => m.Height = mediaInfoHeight)
-                                                   .Build();
+            var mediaInfo = new MediaInfoModel(width: mediaInfoWidth, height: mediaInfoHeight);
 
             var localMovie = Builder<LocalMovie>.CreateNew()
                                                     .With(l => l.MediaInfo = mediaInfo)

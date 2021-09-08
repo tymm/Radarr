@@ -43,12 +43,7 @@ namespace NzbDrone.Core.Test.NotificationTests
 
         private void GiventValidMediaInfo(Quality quality, string audioChannels, string audioFormat, string scanType)
         {
-            _downloadMessage.MovieFile.MediaInfo = new MediaInfoModel
-            {
-                AudioChannelPositions = audioChannels,
-                AudioFormat = audioFormat,
-                ScanType = scanType
-            };
+            _downloadMessage.MovieFile.MediaInfo = new MediaInfoModel(audioChannelPositions: audioChannels, audioFormat: audioFormat);
 
             _downloadMessage.MovieFile.Quality.Quality = quality;
         }
@@ -65,7 +60,7 @@ namespace NzbDrone.Core.Test.NotificationTests
         [Test]
         public void should_add_collection_movie_if_valid_mediainfo()
         {
-            GiventValidMediaInfo(Quality.Bluray1080p, "5.1", "DTS", "Interlaced");
+            GiventValidMediaInfo(Quality.Bluray1080p, "5.1", "DTS", "Progressive");
 
             Subject.AddMovieToCollection(_traktSettings, _downloadMessage.Movie, _downloadMessage.MovieFile);
 
@@ -73,7 +68,7 @@ namespace NzbDrone.Core.Test.NotificationTests
                   .Verify(v => v.AddToCollection(It.Is<TraktCollectMoviesResource>(t =>
                     t.Movies.First().Audio == "dts" &&
                     t.Movies.First().AudioChannels == "5.1" &&
-                    t.Movies.First().Resolution == "hd_1080i" &&
+                    t.Movies.First().Resolution == "hd_1080p" &&
                     t.Movies.First().MediaType == "bluray"),
                   It.IsAny<string>()), Times.Once());
         }
@@ -81,7 +76,7 @@ namespace NzbDrone.Core.Test.NotificationTests
         [Test]
         public void should_format_audio_channels_to_one_decimal_when_adding_collection_movie()
         {
-            GiventValidMediaInfo(Quality.Bluray1080p, "2.0", "DTS", "Interlaced");
+            GiventValidMediaInfo(Quality.Bluray1080p, "2.0", "DTS", "Progressive");
 
             Subject.AddMovieToCollection(_traktSettings, _downloadMessage.Movie, _downloadMessage.MovieFile);
 
@@ -89,7 +84,7 @@ namespace NzbDrone.Core.Test.NotificationTests
                   .Verify(v => v.AddToCollection(It.Is<TraktCollectMoviesResource>(t =>
                     t.Movies.First().Audio == "dts" &&
                     t.Movies.First().AudioChannels == "2.0" &&
-                    t.Movies.First().Resolution == "hd_1080i" &&
+                    t.Movies.First().Resolution == "hd_1080p" &&
                     t.Movies.First().MediaType == "bluray"),
                   It.IsAny<string>()), Times.Once());
         }

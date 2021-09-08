@@ -25,7 +25,7 @@ namespace NzbDrone.Core.MediaFiles.MovieImport.Aggregation.Aggregators.Augmenter
 
             foreach (var audioLanguage in audioLanguages)
             {
-                var language = IsoLanguages.FindByName(audioLanguage)?.Language;
+                var language = IsoLanguages.Find(audioLanguage)?.Language;
                 languages.AddIfNotNull(language);
             }
 
