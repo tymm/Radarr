@@ -5,6 +5,7 @@ using NzbDrone.Test.Common;
 
 namespace NzbDrone.Core.Test.MediaFiles.MediaInfo.MediaInfoFormatterTests
 {
+    /*
     [Ignore("WIP")]
     [TestFixture]
     public class FormatVideoCodecFixture : TestBase
@@ -43,8 +44,7 @@ namespace NzbDrone.Core.Test.MediaFiles.MediaInfo.MediaInfoFormatterTests
             {
                 VideoFormat = split[0],
                 VideoCodecID = split[1],
-                VideoProfile = split[2],
-                VideoCodecLibrary = split[3]
+                VideoProfile = split[2]
             };
 
             MediaInfoFormatter.FormatVideoCodec(mediaInfoModel, sceneName).Should().Be(expectedFormat);
@@ -63,8 +63,7 @@ namespace NzbDrone.Core.Test.MediaFiles.MediaInfo.MediaInfoFormatterTests
             {
                 VideoFormat = split[0],
                 VideoCodecID = split[1],
-                VideoProfile = split[2],
-                VideoCodecLibrary = split[3]
+                VideoProfile = split[2]
             };
 
             MediaInfoFormatter.FormatVideoCodec(mediaInfoModel, sceneName).Should().Be(expectedFormat);
@@ -78,8 +77,7 @@ namespace NzbDrone.Core.Test.MediaFiles.MediaInfo.MediaInfoFormatterTests
             {
                 VideoFormat = split[0],
                 VideoCodecID = split[1],
-                VideoProfile = split[2],
-                VideoCodecLibrary = split[3]
+                VideoProfile = split[2]
             };
 
             MediaInfoFormatter.FormatVideoCodec(mediaInfoModel, sceneName).Should().Be(expectedFormat);
@@ -95,5 +93,5 @@ namespace NzbDrone.Core.Test.MediaFiles.MediaInfo.MediaInfoFormatterTests
 
             MediaInfoFormatter.FormatVideoCodec(mediaInfoModel, null).Should().Be(mediaInfoModel.VideoFormat);
         }
-    }
+    }*/
 }

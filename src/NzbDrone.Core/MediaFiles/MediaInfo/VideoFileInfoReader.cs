@@ -56,11 +56,14 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
 
                 var mediaInfoModel = new MediaInfoModel
                 {
-                    ContainerFormat = mediaInfo.Format.FormatLongName,
+                    Format = mediaInfo.Format,
+                    VideoStreams = mediaInfo.VideoStreams,
+                    AudioStreams = mediaInfo.AudioStreams,
+                    SubtitleStreams = mediaInfo.SubtitleStreams,
+
                     VideoFormat = mediaInfo.PrimaryVideoStream?.CodecName,
                     VideoCodecID = mediaInfo.PrimaryVideoStream?.CodecTagString,
                     VideoProfile = mediaInfo.PrimaryVideoStream?.Profile,
-                    VideoCodecLibrary = "",
                     VideoBitrate = mediaInfo.PrimaryVideoStream?.BitRate ?? 0,
                     VideoBitDepth = mediaInfo.PrimaryVideoStream?.BitsPerRawSample ?? 0,
                     VideoColourPrimaries = mediaInfo.PrimaryVideoStream?.ColorPrimaries,
@@ -70,12 +73,10 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
                     AudioFormat = mediaInfo.PrimaryAudioStream?.CodecName,
                     AudioCodecID = mediaInfo.PrimaryAudioStream?.CodecTagString,
                     AudioProfile = mediaInfo.PrimaryAudioStream?.Profile,
-                    AudioCodecLibrary = "",
                     AudioBitrate = mediaInfo.PrimaryAudioStream?.BitRate ?? 0,
                     RunTime = GetBestRuntime(audioRuntime, videoRuntime, generalRuntime),
                     AudioStreamCount = mediaInfo.AudioStreams.Count,
-                    AudioChannelsContainer = 0,
-                    AudioChannelsStream = mediaInfo.PrimaryAudioStream?.Channels ?? 0,
+                    AudioChannels = mediaInfo.PrimaryAudioStream?.Channels ?? 0,
                     AudioChannelPositions = mediaInfo.PrimaryAudioStream?.ChannelLayout,
                     VideoFps = mediaInfo.PrimaryVideoStream?.FrameRate ?? 0,
                     AudioLanguages = mediaInfo.AudioStreams?.Select(x => x.Language).Where(l => l.IsNotNullOrWhiteSpace()).ConcatToString("/") ?? string.Empty,

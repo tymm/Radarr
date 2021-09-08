@@ -42,24 +42,10 @@ namespace NzbDrone.Core.Test.MediaFiles.MediaInfo.MediaInfoFormatterTests
             var mediaInfoModel = new MediaInfoModel
             {
                 AudioFormat = split[0],
-                AudioCodecID = split[1],
-                AudioProfile = split[2],
-                AudioCodecLibrary = split[3]
+                AudioCodecID = split[1]
             };
 
             MediaInfoFormatter.FormatAudioCodec(mediaInfoModel, sceneName).Should().Be(expectedFormat);
-        }
-
-        [Test]
-        public void should_return_MP3_for_MPEG_Audio_with_Layer_3_for_the_profile()
-        {
-            var mediaInfoModel = new MediaInfoModel
-            {
-                AudioFormat = "MPEG Audio",
-                AudioProfile = "Layer 3"
-            };
-
-            MediaInfoFormatter.FormatAudioCodec(mediaInfoModel, sceneName).Should().Be("MP3");
         }
 
         [Test]

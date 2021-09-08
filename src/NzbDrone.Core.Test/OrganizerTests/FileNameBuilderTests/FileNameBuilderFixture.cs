@@ -1,12 +1,10 @@
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using FizzWare.NBuilder;
 using FluentAssertions;
-using Microsoft.DotNet.InternalAbstractions;
 using Moq;
 using NUnit.Framework;
 using NzbDrone.Core.CustomFormats;
@@ -371,7 +369,7 @@ namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
 
             _movieFile.MediaInfo = new MediaInfoModel()
             {
-                VideoFormat = "avc",
+                VideoFormat = "h264",
                 AudioFormat = "dts",
                 AudioLanguages = "eng/spa",
                 Subtitles = "eng/spa/ita"
@@ -399,9 +397,9 @@ namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
 
             _movieFile.MediaInfo = new MediaInfoModel()
             {
-                VideoFormat = "avc",
+                VideoFormat = "h264",
                 AudioFormat = "dts",
-                AudioChannelsContainer = 6,
+                AudioChannels = 6,
                 AudioLanguages = "eng",
                 Subtitles = language,
                 SchemaRevision = 3
@@ -418,7 +416,7 @@ namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
 
             _movieFile.MediaInfo = new MediaInfoModel()
             {
-                VideoFormat = "avc",
+                VideoFormat = "h264",
                 AudioFormat = "dts",
                 AudioLanguages = "eng",
                 Subtitles = "eng/spa/ita"
@@ -435,7 +433,7 @@ namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
 
             _movieFile.MediaInfo = new MediaInfoModel()
             {
-                VideoFormat = "avc",
+                VideoFormat = "h264",
                 VideoMultiViewCount = 2,
                 AudioFormat = "dts",
                 AudioLanguages = "English",
@@ -755,7 +753,7 @@ namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
             Mocker.GetMock<IUpdateMediaInfo>().Verify(v => v.Update(_movieFile, _movie), Times.Never());
         }
 
-        private void GivenMediaInfoModel(string videoCodec = "avc",
+        private void GivenMediaInfoModel(string videoCodec = "h264",
             string audioCodec = "dts",
             int audioChannels = 6,
             int videoBitDepth = 8,
@@ -769,7 +767,7 @@ namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
             {
                 VideoFormat = videoCodec,
                 AudioFormat = audioCodec,
-                AudioChannelsContainer = audioChannels,
+                AudioChannels = audioChannels,
                 AudioLanguages = audioLanguages,
                 Subtitles = subtitles,
                 VideoBitDepth = videoBitDepth,
