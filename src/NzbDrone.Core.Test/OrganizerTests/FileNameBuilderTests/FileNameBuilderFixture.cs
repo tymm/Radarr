@@ -367,10 +367,16 @@ namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
         {
             _namingConfig.StandardMovieFormat = "{Movie.Title}.{MEDIAINFO.FULL}";
 
-            _movieFile.MediaInfo = new MediaInfoModel(new[] { "eng", "spa" }, new[] { "eng", "spa", "ita" });
+            _movieFile.MediaInfo = new MediaInfoModel()
+            {
+                VideoFormat = "h264",
+                AudioFormat = "dts",
+                AudioLanguages = new List<string> { "eng", "spa" },
+                Subtitles = new List<string> { "eng", "spa", "ita" }
+            };
 
             Subject.BuildFileName(_movie, _movieFile)
-                   .Should().Be("South.Park.AVC.DTS[EN+ES].[EN+ES+IT]");
+                   .Should().Be("South.Park.H264.DTS[EN+ES].[EN+ES+IT]");
         }
 
         [TestCase("nob", "NB")]
@@ -389,10 +395,18 @@ namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
         {
             _namingConfig.StandardMovieFormat = "{Movie.Title}.{MEDIAINFO.FULL}";
 
-            _movieFile.MediaInfo = new MediaInfoModel(new[] { "eng" }, new[] { language });
+            _movieFile.MediaInfo = new MediaInfoModel()
+            {
+                VideoFormat = "h264",
+                AudioFormat = "dts",
+                AudioChannels = 6,
+                AudioLanguages = new List<string> { "eng" },
+                Subtitles = new List<string> { language },
+                SchemaRevision = 3
+            };
 
             Subject.BuildFileName(_movie, _movieFile)
-                   .Should().Be($"South.Park.AVC.DTS.[{code}]");
+                   .Should().Be($"South.Park.H264.DTS.[{code}]");
         }
 
         [Test]
@@ -400,10 +414,16 @@ namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
         {
             _namingConfig.StandardMovieFormat = "{Movie.Title}.{MEDIAINFO.FULL}";
 
-            _movieFile.MediaInfo = new MediaInfoModel(new[] { "eng", }, new[] { "eng", "spa", "ita" });
+            _movieFile.MediaInfo = new MediaInfoModel()
+            {
+                VideoFormat = "h264",
+                AudioFormat = "dts",
+                AudioLanguages = new List<string> { "eng" },
+                Subtitles = new List<string> { "eng", "spa", "ita" }
+            };
 
             Subject.BuildFileName(_movie, _movieFile)
-                   .Should().Be("South.Park.AVC.DTS.[EN+ES+IT]");
+                   .Should().Be("South.Park.H264.DTS.[EN+ES+IT]");
         }
 
         [Ignore("not currently supported")]
@@ -412,7 +432,14 @@ namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
         {
             _namingConfig.StandardMovieFormat = "{Movie.Title}.{MEDIAINFO.3D}.{MediaInfo.Simple}";
 
-            _movieFile.MediaInfo = new MediaInfoModel(videoMultiViewCount: 2);
+            _movieFile.MediaInfo = new MediaInfoModel()
+            {
+                VideoFormat = "h264",
+                VideoMultiViewCount = 2,
+                AudioFormat = "dts",
+                AudioLanguages = new List<string> { "eng" },
+                Subtitles = new List<string> { "eng", "spa", "ita" }
+            };
 
             Subject.BuildFileName(_movie, _movieFile)
                    .Should().Be("South.Park.3D.h264.DTS");
@@ -737,15 +764,16 @@ namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
             string subtitles = "eng/spa/ita",
             int schemaRevision = 5)
         {
-            _movieFile.MediaInfo = new MediaInfoModel(audioLanguages.Split("/"),
-                subtitles.Split("/"),
-                videoCodec,
-                bitDepth: videoBitDepth,
-                colorPrimaries: videoColourPrimaries,
-                colorTransfer: videoTransferCharacteristics,
-                audioFormat: audioCodec,
-                audioChannels: audioChannels)
+            _movieFile.MediaInfo = new MediaInfoModel
             {
+                VideoFormat = videoCodec,
+                AudioFormat = audioCodec,
+                AudioChannels = audioChannels,
+                AudioLanguages = audioLanguages.Split("/").ToList(),
+                Subtitles = subtitles.Split("/").ToList(),
+                VideoBitDepth = videoBitDepth,
+                VideoColourPrimaries = videoColourPrimaries,
+                VideoTransferCharacteristics = videoTransferCharacteristics,
                 SchemaRevision = schemaRevision
             };
         }

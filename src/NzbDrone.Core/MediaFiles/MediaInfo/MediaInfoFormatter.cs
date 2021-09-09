@@ -1,4 +1,3 @@
-using System;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -7,7 +6,6 @@ using NLog.Fluent;
 using NzbDrone.Common.Extensions;
 using NzbDrone.Common.Instrumentation;
 using NzbDrone.Common.Instrumentation.Extensions;
-using NzbDrone.Common.Serializer;
 
 namespace NzbDrone.Core.MediaFiles.MediaInfo
 {
@@ -159,7 +157,7 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
 
             Logger.Debug()
                   .Message("Unknown audio format: '{0}' in '{1}'.", mediaInfo.RawData, sceneName)
-                  .WriteSentryWarn("UnknownAudioFormatFFProbe", mediaInfo.Analysis.Format?.FormatLongName, mediaInfo.AudioFormat, audioCodecID)
+                  .WriteSentryWarn("UnknownAudioFormatFFProbe", mediaInfo.ContainerFormat, mediaInfo.AudioFormat, audioCodecID)
                   .Write();
 
             return mediaInfo.AudioFormat;
@@ -261,7 +259,7 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
 
             Logger.Debug()
                   .Message("Unknown video format: '{0}' in '{1}'.", mediaInfo.RawData, sceneName)
-                  .WriteSentryWarn("UnknownVideoFormatFFProbe", mediaInfo.Analysis.Format?.FormatLongName, videoFormat, videoCodecID)
+                  .WriteSentryWarn("UnknownVideoFormatFFProbe", mediaInfo.ContainerFormat, videoFormat, videoCodecID)
                   .Write();
 
             return result;

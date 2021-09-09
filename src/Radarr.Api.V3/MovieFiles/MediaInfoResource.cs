@@ -1,4 +1,5 @@
 using System;
+using NzbDrone.Common.Extensions;
 using NzbDrone.Core.MediaFiles.MediaInfo;
 using Radarr.Http.REST;
 
@@ -34,7 +35,7 @@ namespace Radarr.Api.V3.MovieFiles
             {
                 AudioBitrate = model.AudioBitrate,
                 AudioChannels = MediaInfoFormatter.FormatAudioChannels(model),
-                AudioLanguages = model.AudioLanguages,
+                AudioLanguages = model.AudioLanguages.ConcatToString("/"),
                 AudioStreamCount = model.AudioStreamCount,
                 AudioCodec = MediaInfoFormatter.FormatAudioCodec(model, sceneName),
                 VideoBitDepth = model.VideoBitDepth,
@@ -44,7 +45,7 @@ namespace Radarr.Api.V3.MovieFiles
                 Resolution = $"{model.Width}x{model.Height}",
                 RunTime = FormatRuntime(model.RunTime),
                 ScanType = model.ScanType,
-                Subtitles = model.Subtitles
+                Subtitles = model.Subtitles.ConcatToString("/")
             };
         }
 

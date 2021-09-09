@@ -369,8 +369,8 @@ namespace NzbDrone.Core.Organizer
             var videoCodec = MediaInfoFormatter.FormatVideoCodec(movieFile.MediaInfo, sceneName);
             var audioCodec = MediaInfoFormatter.FormatAudioCodec(movieFile.MediaInfo, sceneName);
             var audioChannels = MediaInfoFormatter.FormatAudioChannels(movieFile.MediaInfo);
-            var audioLanguages = movieFile.MediaInfo.AudioLanguages ?? string.Empty;
-            var subtitles = movieFile.MediaInfo.Subtitles ?? string.Empty;
+            var audioLanguages = movieFile.MediaInfo.AudioLanguages ?? new List<string>();
+            var subtitles = movieFile.MediaInfo.Subtitles ?? new List<string>();
 
             var mediaInfoAudioLanguages = GetLanguagesToken(audioLanguages);
             if (!mediaInfoAudioLanguages.IsNullOrWhiteSpace())
@@ -430,10 +430,10 @@ namespace NzbDrone.Core.Organizer
             tokenHandlers["{Custom Formats}"] = m => string.Join(" ", customFormats.Where(x => x.IncludeCustomFormatWhenRenaming));
         }
 
-        private string GetLanguagesToken(string mediaInfoLanguages)
+        private string GetLanguagesToken(List<string> mediaInfoLanguages)
         {
             var tokens = new List<string>();
-            foreach (var item in mediaInfoLanguages.Split('/'))
+            foreach (var item in mediaInfoLanguages)
             {
                 if (!string.IsNullOrWhiteSpace(item) && item != "und")
                 {

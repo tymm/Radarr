@@ -43,7 +43,12 @@ namespace NzbDrone.Core.Test.NotificationTests
 
         private void GiventValidMediaInfo(Quality quality, string audioChannels, string audioFormat, string scanType)
         {
-            _downloadMessage.MovieFile.MediaInfo = new MediaInfoModel(audioChannelPositions: audioChannels, audioFormat: audioFormat);
+            _downloadMessage.MovieFile.MediaInfo = new MediaInfoModel
+            {
+                AudioChannelPositions = audioChannels,
+                AudioFormat = audioFormat,
+                ScanType = scanType
+            };
 
             _downloadMessage.MovieFile.Quality.Quality = quality;
         }

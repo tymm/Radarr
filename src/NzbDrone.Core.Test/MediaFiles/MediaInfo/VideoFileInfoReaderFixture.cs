@@ -49,18 +49,17 @@ namespace NzbDrone.Core.Test.MediaFiles.MediaInfo
             info.AudioBitrate.Should().Be(125488);
             info.AudioChannels.Should().Be(2);
             info.AudioChannelPositions.Should().Be("stereo");
-            info.AudioLanguages.Should().Be("eng");
+            info.AudioLanguages.Should().BeEquivalentTo("eng");
             info.Height.Should().Be(320);
             info.RunTime.Seconds.Should().Be(10);
             info.ScanType.Should().Be("Progressive");
-            info.Subtitles.Should().Be("");
+            info.Subtitles.Should().BeEmpty();
             info.VideoBitrate.Should().Be(193328);
             info.VideoFps.Should().Be(24);
             info.Width.Should().Be(480);
+            info.VideoBitDepth.Should().Be(8);
             info.VideoColourPrimaries.Should().Be("smpte170m");
             info.VideoTransferCharacteristics.Should().Be("bt709");
-
-            // info.AudioAdditionalFeatures.Should().BeOneOf("", "LC");
         }
 
         [Test]
@@ -86,18 +85,16 @@ namespace NzbDrone.Core.Test.MediaFiles.MediaInfo
             info.AudioBitrate.Should().Be(125488);
             info.AudioChannels.Should().Be(2);
             info.AudioChannelPositions.Should().Be("stereo");
-            info.AudioLanguages.Should().Be("eng");
+            info.AudioLanguages.Should().BeEquivalentTo("eng");
             info.Height.Should().Be(320);
             info.RunTime.Seconds.Should().Be(10);
             info.ScanType.Should().Be("Progressive");
-            info.Subtitles.Should().Be("");
+            info.Subtitles.Should().BeEmpty();
             info.VideoBitrate.Should().Be(193328);
             info.VideoFps.Should().Be(24);
             info.Width.Should().Be(480);
             info.VideoColourPrimaries.Should().Be("smpte170m");
             info.VideoTransferCharacteristics.Should().Be("bt709");
-
-            // info.AudioAdditionalFeatures.Should().BeOneOf("", "LC");
         }
     }
 }

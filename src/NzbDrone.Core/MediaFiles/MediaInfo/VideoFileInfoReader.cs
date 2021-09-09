@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using FFMpegCore;
 using NLog;
 using NzbDrone.Common.Disk;
 using NzbDrone.Common.EnvironmentInfo;
+using NzbDrone.Common.Extensions;
 
 namespace NzbDrone.Core.MediaFiles.MediaInfo
 {
@@ -18,6 +21,7 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
     {
         private readonly IDiskProvider _diskProvider;
         private readonly Logger _logger;
+        private readonly List<FFProbePixelFormat> _pixelFormats;
 
         public const int MINIMUM_MEDIA_INFO_SCHEMA_REVISION = 8;
         public const int CURRENT_MEDIA_INFO_SCHEMA_REVISION = 8;
@@ -29,10 +33,19 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
 
             // We bundle ffprobe for windows and linux-x64 currently
             // TODO: move binaries into a nuget, provide for all platforms
-            GlobalFFOptions.Configure(options => options.ExtraArguments = "-probesize 50000000 -analyzeduration 25000000");
             if (OsInfo.IsWindows || (OsInfo.Os == Os.Linux && RuntimeInformation.OSArchitecture == Architecture.X64))
             {
                 GlobalFFOptions.Configure(options => options.BinaryFolder = AppDomain.CurrentDomain.BaseDirectory);
+            }
+
+            try
+            {
+                _pixelFormats = FFProbe.GetPixelFormats();
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e, "Failed to get supported pixel formats from ffprobe");
+                _pixelFormats = new List<FFProbePixelFormat>();
             }
         }
 
@@ -47,10 +60,44 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
             try
             {
                 _logger.Debug("Getting media info from {0}", filename);
-                var ffprobeOutput = FFProbe.GetRawOutput(filename);
+                var ffprobeOutput = FFProbe.GetRawOutput(filename, ffOptions: new FFOptions { ExtraArguments = "-probesize 50000000" });
+                var analysis = FFProbe.Analyse(ffprobeOutput);
+
+                if (analysis.PrimaryAudioStream.ChannelLayout.IsNullOrWhiteSpace())
+                {
+                    ffprobeOutput = FFProbe.GetRawOutput(filename, ffOptions: new FFOptions { ExtraArguments = "-probesize 50000000 -analyzeduration 50000000" });
+                    analysis = FFProbe.Analyse(ffprobeOutput);
+                }
 
                 var mediaInfoModel = new MediaInfoModel
                 {
+                    ContainerFormat = analysis.Format.FormatName,
+                    VideoFormat = analysis.PrimaryVideoStream?.CodecName,
+                    VideoCodecID = analysis.PrimaryVideoStream?.CodecTagString,
+                    VideoProfile = analysis.PrimaryVideoStream?.Profile,
+                    VideoBitrate = analysis.PrimaryVideoStream?.BitRate ?? 0,
+                    VideoMultiViewCount = 1,
+                    VideoBitDepth = (int)GetPixelFormat(analysis.PrimaryVideoStream?.PixelFormat).Components.Min(x => x.BitDepth),
+                    VideoColourPrimaries = analysis.PrimaryVideoStream?.ColorPrimaries,
+                    VideoTransferCharacteristics = analysis.PrimaryVideoStream?.ColorTransfer,
+                    Height = analysis.PrimaryVideoStream?.Height ?? 0,
+                    Width = analysis.PrimaryVideoStream?.Width ?? 0,
+                    AudioFormat = analysis.PrimaryAudioStream?.CodecName,
+                    AudioCodecID = analysis.PrimaryAudioStream?.CodecTagString,
+                    AudioProfile = analysis.PrimaryAudioStream?.Profile,
+                    AudioBitrate = analysis.PrimaryAudioStream?.BitRate ?? 0,
+                    RunTime = GetBestRuntime(analysis.PrimaryAudioStream?.Duration, analysis.PrimaryVideoStream.Duration, analysis.Format.Duration),
+                    AudioStreamCount = analysis.AudioStreams.Count,
+                    AudioChannels = analysis.PrimaryAudioStream?.Channels ?? 0,
+                    AudioChannelPositions = analysis.PrimaryAudioStream?.ChannelLayout,
+                    VideoFps = analysis.PrimaryVideoStream?.FrameRate ?? 0,
+                    AudioLanguages = analysis.AudioStreams?.Select(x => x.Language)
+                            .Where(l => l.IsNotNullOrWhiteSpace())
+                            .ToList(),
+                    Subtitles = analysis.SubtitleStreams?.Select(x => x.Language)
+                            .Where(l => l.IsNotNullOrWhiteSpace())
+                            .ToList(),
+                    ScanType = "Progressive",
                     RawData = ffprobeOutput,
                     SchemaRevision = CURRENT_MEDIA_INFO_SCHEMA_REVISION
                 };
@@ -70,6 +117,26 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
             var info = GetMediaInfo(filename);
 
             return info?.RunTime;
+        }
+
+        private static TimeSpan GetBestRuntime(TimeSpan? audio, TimeSpan? video, TimeSpan general)
+        {
+            if (!video.HasValue || video.Value.TotalMilliseconds == 0)
+            {
+                if (!audio.HasValue || audio.Value.TotalMilliseconds == 0)
+                {
+                    return general;
+                }
+
+                return audio.Value;
+            }
+
+            return video.Value;
+        }
+
+        private FFProbePixelFormat GetPixelFormat(string format)
+        {
+            return _pixelFormats.Find(x => x.Name == format);
         }
     }
 }
