@@ -29,7 +29,7 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
 
             // We bundle ffprobe for windows and linux-x64 currently
             // TODO: move binaries into a nuget, provide for all platforms
-            GlobalFFOptions.Configure(options => options.ExtraArguments = "-probesize 50000000");
+            GlobalFFOptions.Configure(options => options.ExtraArguments = "-probesize 50000000 -analyzeduration 25000000");
             if (OsInfo.IsWindows || (OsInfo.Os == Os.Linux && RuntimeInformation.OSArchitecture == Architecture.X64))
             {
                 GlobalFFOptions.Configure(options => options.BinaryFolder = AppDomain.CurrentDomain.BaseDirectory);
