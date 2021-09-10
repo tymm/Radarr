@@ -65,7 +65,7 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
 
                 if (analysis.PrimaryAudioStream.ChannelLayout.IsNullOrWhiteSpace())
                 {
-                    ffprobeOutput = FFProbe.GetRawOutput(filename, ffOptions: new FFOptions { ExtraArguments = "-probesize 50000000 -analyzeduration 50000000" });
+                    ffprobeOutput = FFProbe.GetRawOutput(filename, ffOptions: new FFOptions { ExtraArguments = "-probesize 150000000 -analyzeduration 150000000" });
                     analysis = FFProbe.Analyse(ffprobeOutput);
                 }
 
