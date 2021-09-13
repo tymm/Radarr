@@ -31,12 +31,8 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
             _diskProvider = diskProvider;
             _logger = logger;
 
-            // We bundle ffprobe for windows and linux-x64 currently
-            // TODO: move binaries into a nuget, provide for all platforms
-            if (OsInfo.IsWindows || (OsInfo.Os == Os.Linux && RuntimeInformation.OSArchitecture == Architecture.X64))
-            {
-                GlobalFFOptions.Configure(options => options.BinaryFolder = AppDomain.CurrentDomain.BaseDirectory);
-            }
+            // We bundle ffprobe for all platforms
+            GlobalFFOptions.Configure(options => options.BinaryFolder = AppDomain.CurrentDomain.BaseDirectory);
 
             try
             {
